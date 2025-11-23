@@ -27,7 +27,9 @@ def test_model(config):
 
     model = ZCIA_Transformer(
         max_cols=config["max_cols"],
-        embed_dim=config["embed_dim"]
+        embed_dim=config["embed_dim"],
+        n_heads=config.get("n_heads", 4),
+        n_layers=config.get("n_layers", 4)
     ).to(device)
     
     model.load_state_dict(torch.load(model_path, map_location=device))
@@ -50,7 +52,7 @@ def test_model(config):
     print(f"Evaluating on {n_test_samples} samples...")
     
     with torch.no_grad():
-        for _ in range(n_test_samples):
+        for idx in range(n_test_samples):
             data = generator.sample_scm()
             
             # Prepare input
@@ -91,13 +93,13 @@ def test_model(config):
             # However, we need to ensure y matches the output logits.
             # y from generator is (C, C).
             
-            logits = model(x, m, pad_mask[:, :x.shape[2]]) # Slice pad_mask to current cols
+            logits, _ = model(x, m, pad_mask[:, :x.shape[2]]) # Ignore intervention predictions
             probs = torch.sigmoid(logits).cpu().numpy().squeeze(0)
             
             # Flatten for metrics
             y_flat = y.flatten()
             probs_flat = probs.flatten()
-            pred_flat = (probs_flat > 0.5).astype(int)
+            pred_flat = (probs_flat > 0.3).astype(int)  # Lower threshold to 0.3
             
             # Compute Metrics
             metrics["shd"].append(compute_shd(y_flat, pred_flat))
@@ -114,9 +116,9 @@ def test_model(config):
             # Visualize first few samples
             plots_dir = os.path.join(output_dir, "plots")
             os.makedirs(plots_dir, exist_ok=True)
-            if _ < 3: # Plot first 3 samples
-                plot_adjacency_comparison(y, probs, os.path.join(plots_dir, f"adj_comparison_{_}.png"))
-                plot_graph_structure(y, (probs > 0.5).astype(int), os.path.join(plots_dir, f"graph_structure_{_}.png"))
+            if idx < 3: # Plot first 3 samples
+                plot_adjacency_comparison(y, probs, os.path.join(plots_dir, f"adj_comparison_{idx}.png"))
+                plot_graph_structure(y, (probs > 0.5).astype(int), os.path.join(plots_dir, f"graph_structure_{idx}.png"))
             
     # Save metrics
     metrics_summary = {}

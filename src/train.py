@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import DataLoader
 import numpy as np
@@ -10,16 +11,36 @@ from src.dataset import InfiniteCausalStream, causal_collate_fn
 def worker_init_fn(worker_id):
     np.random.seed(np.random.get_state()[1][0] + worker_id)
 
-def compute_masked_loss(logits, target, pad_mask, pos_weight=None):
+class FocalLoss(nn.Module):
+    """Focal Loss for addressing class imbalance"""
+    def __init__(self, alpha=0.25, gamma=2.0):
+        super().__init__()
+        self.alpha = alpha
+        self.gamma = gamma
+        
+    def forward(self, logits, targets):
+        bce = F.binary_cross_entropy_with_logits(logits, targets, reduction='none')
+        pt = torch.exp(-bce)  # Probability of correct class
+        focal = self.alpha * (1 - pt) ** self.gamma * bce
+        return focal.mean()
+
+def compute_masked_loss(logits, target, pad_mask, loss_fn):
+    """
+    Compute loss only on valid (non-padded) entries.
+    
+    Args:
+        logits: (batch, cols, cols) - predicted edge probabilities (logits)
+        target: (batch, cols, cols) - ground truth adjacency matrix
+        pad_mask: (batch, cols) - True for padded columns
+        loss_fn: Loss function (FocalLoss or weighted BCE)
+    """
     valid_cols = ~pad_mask 
     valid_matrix = torch.einsum('bi,bj->bij', valid_cols.float(), valid_cols.float())
     
-    if pos_weight is not None:
-        criterion = nn.BCEWithLogitsLoss(reduction='none', pos_weight=pos_weight)
-    else:
-        criterion = nn.BCEWithLogitsLoss(reduction='none')
-        
-    loss_matrix = criterion(logits, target)
+    loss_matrix = loss_fn(logits, target)
+    if len(loss_matrix.shape) == 0:  # Focal loss returns scalar
+        return loss_matrix
+    
     masked_loss = loss_matrix * valid_matrix
     return masked_loss.sum() / (valid_matrix.sum() + 1e-6)
 
@@ -27,17 +48,15 @@ def train_model_online(config):
     device = config.get("device", "cuda" if torch.cuda.is_available() else "cpu")
     print(f"Training on {device}")
     
-    # Calculate pos_weight for weighted loss
-    p_edge = config.get("p_edge", 0.3)
-    # Weight = (Negative Samples) / (Positive Samples) approx (1 - p) / p
-    # We can boost it slightly to prioritize recall
-    weight_val = (1.0 - p_edge) / p_edge
-    pos_weight = torch.tensor([weight_val]).to(device)
-    print(f"Using weighted loss with pos_weight: {weight_val:.2f}")
+    # Initialize Focal Loss (more aggressive)
+    focal_loss = FocalLoss(alpha=0.25, gamma=3.0)
+    print(f"Using Focal Loss (alpha=0.25, gamma=3.0)")
     
     model = ZCIA_Transformer(
         max_cols=config["max_cols"],
-        embed_dim=config["embed_dim"]
+        embed_dim=config["embed_dim"],
+        n_heads=config.get("n_heads", 4),
+        n_layers=config.get("n_layers", 4)
     ).to(device)
     
     optimizer = optim.Adam(model.parameters(), lr=config["lr"])
@@ -87,8 +106,24 @@ def train_model_online(config):
         
         # Forward pass with AMP (updated API)
         with torch.amp.autocast('cuda', enabled=use_amp):
-            logits = model(x, m, pad_mask)
-            loss = compute_masked_loss(logits, y, pad_mask, pos_weight=pos_weight)
+            logits, intervention_logits = model(x, m, pad_mask)
+            
+            # Main task: edge prediction
+            edge_loss = compute_masked_loss(logits, y, pad_mask, focal_loss)
+            
+            # Auxiliary task: intervention prediction
+            # Target: 1 if column has any intervention, 0 otherwise
+            intervention_target = (m.sum(dim=1) > 0).float()  # (batch, cols)
+            intervention_loss = F.binary_cross_entropy_with_logits(
+                intervention_logits, 
+                intervention_target,
+                reduction='none'
+            )
+            # Mask out padded columns
+            intervention_loss = (intervention_loss * (~pad_mask).float()).sum() / ((~pad_mask).float().sum() + 1e-6)
+            
+            # Combined loss
+            loss = edge_loss + 0.1 * intervention_loss
             loss = loss / accumulation_steps # Normalize loss
         
         # Backward pass with Scaler

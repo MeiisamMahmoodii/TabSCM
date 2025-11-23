@@ -1,0 +1,40 @@
+# Production Configuration for Full-Scale Training
+# Optimized for 24GB VRAM with TabPFN-style embeddings
+
+# Data Generation - PRODUCTION SCALE
+output_dir: "production_data"
+n_samples: 2000  # Increased from 1000
+n_runs: 100      # Increased from 50
+n_nodes_min: 10  # Larger graphs
+n_nodes_max: 30  # Larger graphs
+p_edge: 0.3
+p_linear: 0.5    # Mix of linear and non-linear (50/50)
+max_rows: 2000   # More rows per sample
+
+# Small runs for testing
+n_runs_small: 20
+min_nodes_small: 10
+max_nodes_small: 30
+
+# Large runs for robustness
+n_runs_large: 80
+min_nodes_large: 50
+max_nodes_large: 100  # Reduced from 150 to fit in 24GB
+
+# Model Architecture - TabPFN-style
+max_cols: 128     # Reduced from 256 to fit in memory
+min_nodes: 10
+embed_dim: 192    # Balanced for memory
+n_heads: 8        # Column-level attention
+n_layers: 6       # Column-level encoding
+use_tabpfn_style: true
+
+# Training - PRODUCTION SCALE
+batch_size: 2              # For TabPFN-style model
+accumulation_steps: 16     # Effective batch = 32
+use_amp: false
+lr: 0.001
+total_steps: 50000         # 10x more training
+print_every: 500
+n_test_samples: 100        # More thorough testing
+device: "cuda"

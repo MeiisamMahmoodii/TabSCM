@@ -9,15 +9,20 @@ n_runs: 10
 min_nodes_large: 50
 max_nodes_large: 100
 
-# Training Configuration
+# Training# Model Architecture
 max_cols: 128
 min_nodes: 8
-embed_dim: 128
-batch_size: 8
-accumulation_steps: 4
+embed_dim: 192 # Balanced: larger than 128, fits in memory
+n_heads: 8 # Increased from 4 (for column-level attention)
+n_layers: 6 # Increased from 4 (for column-level encoding)
+use_tabpfn_style: true # Use TabPFN-style row-level encoding
+
+# Training
+batch_size: 2 # Reduced for TabPFN-style model (row-level Transformer)
+accumulation_steps: 16 # Effective batch size = 2 × 16 = 32
 use_amp: false # Temporarily disabled due to NaN loss
-lr: 0.0001
-total_steps: 2000
-print_every: 10
-n_test_samples: 5
+lr: 0.001
+total_steps: 5000 # Increased for better convergence
+print_every: 50
+n_test_samples: 10
 device: "cuda"

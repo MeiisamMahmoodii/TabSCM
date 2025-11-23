@@ -9,15 +9,19 @@ n_runs: 50
 min_nodes_large: 50
 max_nodes_large: 100
 
-# Training Configuration
+# Training# Model Architecture
 max_cols: 128
 min_nodes: 8
-embed_dim: 128
+embed_dim: 256 # Increased from 128 for more capacity
+n_heads: 8 # Increased from 4
+n_layers: 6 # Increased from 4
+
+# Training
 batch_size: 8 # Physical batch size (keep small for memory)
-accumulation_steps: 4 # Effective batch size = 8 * 4 = 32
-use_amp: true # Mixed Precision
-lr: 0.0001
-total_steps: 20000
+accumulation_steps: 4 # Effective batch size = 8 × 4 = 32
+use_amp: false # Mixed Precision (DISABLED due to NaN)
+lr: 0.001 # Increased 10x to escape local minimum
+total_steps: 20000 # Increased from 2000 for better convergence
 print_every: 100
 n_test_samples: 100
 device: "cuda" # Set to "cuda" if you have enough GPU memory (currently < 100MB free)

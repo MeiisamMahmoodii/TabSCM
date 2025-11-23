@@ -2,13 +2,13 @@
 
 ## 1. Model Architecture & Configuration
 - **Max Columns**: 128
-- **Embedding Dimension**: 128
-- **Training Steps**: 2000
-- **Batch Size**: 8
-- **Learning Rate**: 0.0001
+- **Embedding Dimension**: 192
+- **Training Steps**: 5000
+- **Batch Size**: 2
+- **Learning Rate**: 0.001
 
 ## 2. Training Performance
-The model was trained for 2000 steps.
+The model was trained for 5000 steps.
 
 ### Loss Curve
 ![Loss Curve](plots/loss_curve.png)
@@ -18,12 +18,12 @@ Analysis of gradient norms across model components.
 ![Gradient Flow](plots/gradient_flow.png)
 
 ## 3. Test Performance (Zero-Shot)
-Evaluated on 5 unseen synthetic SCMs.
+Evaluated on 10 unseen synthetic SCMs.
 
 | Metric | Mean | Std Dev |
 | :--- | :--- | :--- |
-| **SHD** | 798.2000 | 338.3870 |
-| **AUROC** | 0.5008 | 0.0134 |
+| **SHD** | 541.1000 | 462.6321 |
+| **AUROC** | 0.4954 | 0.0200 |
 | **F1** | 0.0000 | 0.0000 |
 | **PRECISION** | 0.0000 | 0.0000 |
 | **RECALL** | 0.0000 | 0.0000 |
