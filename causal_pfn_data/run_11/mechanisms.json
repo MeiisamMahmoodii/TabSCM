@@ -1,0 +1,87 @@
+{
+    "nodes": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+    ],
+    "parents": {
+        "0": [
+            3,
+            5,
+            6
+        ],
+        "1": [],
+        "2": [
+            5
+        ],
+        "3": [
+            4,
+            6
+        ],
+        "4": [
+            6
+        ],
+        "5": [
+            7
+        ],
+        "6": [
+            7
+        ],
+        "7": []
+    },
+    "edges": {
+        "3->0": {
+            "type": "quadratic"
+        },
+        "5->0": {
+            "type": "quadratic"
+        },
+        "6->0": {
+            "type": "quadratic"
+        },
+        "5->2": {
+            "type": "sin"
+        },
+        "4->3": {
+            "type": "threshold"
+        },
+        "6->3": {
+            "type": "threshold"
+        },
+        "6->4": {
+            "type": "gaussian"
+        },
+        "7->5": {
+            "type": "linear",
+            "weight": -0.635792321248212
+        },
+        "7->6": {
+            "type": "gaussian"
+        }
+    },
+    "mechanisms": {
+        "0": "quadratic",
+        "1": "linear",
+        "2": "sin",
+        "3": "threshold",
+        "4": "gaussian",
+        "5": "linear",
+        "5_weights": [
+            -0.635792321248212
+        ],
+        "6": "gaussian",
+        "7": "linear"
+    },
+    "intervened_nodes": [
+        7
+    ],
+    "adjacency_matrix_shape": [
+        8,
+        8
+    ]
+}

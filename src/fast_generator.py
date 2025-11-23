@@ -3,10 +3,11 @@ import networkx as nx
 import torch
 
 class FastSCMGenerator:
-    def __init__(self, min_nodes=8, max_cols=128, max_rows=2000):
+    def __init__(self, min_nodes=8, max_cols=128, max_rows=2000, p_linear=0.5):
         self.min_nodes = min_nodes
         self.max_cols = max_cols 
         self.max_rows = max_rows # New parameter to cap memory usage
+        self.p_linear = p_linear
         
     def sample_scm(self):
         """Creates one random SCM and returns formatted tensors directly."""
@@ -25,7 +26,8 @@ class FastSCMGenerator:
         # 3. Generate Observational Data
         n_samples = 1000 # Base pool size
         X = np.zeros((n_samples, n_nodes), dtype=np.float32)
-        node_types = np.random.randint(0, 2, size=n_nodes) 
+        # Use p_linear to determine node types: 0 = Linear, 1 = Non-Linear
+        node_types = np.random.choice([0, 1], size=n_nodes, p=[self.p_linear, 1 - self.p_linear])
         
         topo_order = list(nx.topological_sort(graph))
         

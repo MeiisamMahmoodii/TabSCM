@@ -1,10 +1,17 @@
 # Python-generated files
 __pycache__/
 *.py[oc]
+*.csv
+*.json
+*.pt
+*.npy
 build/
 dist/
 wheels/
 *.egg-info
+causal_pfn_data/
+debug_data/
+test_data/
 
 # Virtual environments
 .venv

@@ -1,6 +1,6 @@
 import os
 import json
-from src.visualize import plot_loss_curve
+from src.visualize import plot_loss_curve, plot_gradient_norms
 
 def generate_report(config):
     output_dir = config.get("output_dir", "causal_pfn_data")
@@ -25,6 +25,16 @@ def generate_report(config):
     os.makedirs(plots_dir, exist_ok=True)
     if loss_history:
         plot_loss_curve(loss_history, os.path.join(plots_dir, "loss_curve.png"))
+
+    # Load and Plot Gradients
+    grad_path = os.path.join(output_dir, "grad_history.json")
+    grad_history = []
+    if os.path.exists(grad_path):
+        with open(grad_path, "r") as f:
+            grad_history = json.load(f)
+            
+    if grad_history:
+        plot_gradient_norms(grad_history, os.path.join(plots_dir, "gradient_flow.png"))
         
     # Create Markdown Content
     content = f"""# TabSCM Model Report
@@ -38,7 +48,13 @@ def generate_report(config):
 
 ## 2. Training Performance
 The model was trained for {config.get('total_steps')} steps.
+
+### Loss Curve
 ![Loss Curve](plots/loss_curve.png)
+
+### Gradient Flow
+Analysis of gradient norms across model components.
+![Gradient Flow](plots/gradient_flow.png)
 
 ## 3. Test Performance (Zero-Shot)
 Evaluated on {config.get('n_test_samples')} unseen synthetic SCMs.

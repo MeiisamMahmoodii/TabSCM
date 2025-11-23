@@ -119,8 +119,8 @@ class CausalDataset(Dataset):
         }
 
 class InfiniteCausalStream(IterableDataset):
-    def __init__(self, min_nodes=8, max_nodes=128):
-        self.generator = FastSCMGenerator(min_nodes=min_nodes, max_cols=max_nodes)
+    def __init__(self, min_nodes=8, max_nodes=128, p_linear=0.5, max_rows=1000):
+        self.generator = FastSCMGenerator(min_nodes=min_nodes, max_cols=max_nodes, p_linear=p_linear, max_rows=max_rows)
 
     def __iter__(self):
         while True:

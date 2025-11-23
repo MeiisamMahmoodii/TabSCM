@@ -69,3 +69,27 @@ def plot_metric_distributions(metrics, save_path):
     plt.tight_layout()
     plt.savefig(save_path)
     plt.close()
+
+def plot_gradient_norms(grad_history, save_path):
+    steps = [entry['step'] for entry in grad_history]
+    
+    plt.figure(figsize=(10, 6))
+    
+    # Collect keys (components)
+    keys = set()
+    for entry in grad_history:
+        keys.update(entry.keys())
+    keys.discard('step')
+    
+    for key in keys:
+        values = [entry.get(key, 0) for entry in grad_history]
+        plt.plot(steps, values, label=key)
+        
+    plt.xlabel('Step')
+    plt.ylabel('Average Gradient Norm')
+    plt.title('Gradient Flow Analysis')
+    plt.legend()
+    plt.yscale('log') # Log scale is often better for gradients
+    plt.grid(True, which="both", ls="-", alpha=0.5)
+    plt.savefig(save_path)
+    plt.close()
