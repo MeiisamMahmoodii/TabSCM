@@ -1,0 +1,21 @@
+output_dir: "test_data"
+hidden_dim: 16
+n_nodes_min: 5
+n_nodes_max: 10
+p_edge: 0.3
+p_linear: 0.5
+n_samples: 100
+n_runs: 1
+min_nodes_large: 10
+max_nodes_large: 20
+
+# Training Configuration
+max_cols: 20
+min_nodes: 5
+embed_dim: 32
+batch_size: 2
+lr: 0.001
+total_steps: 10
+print_every: 1
+n_test_samples: 5
+device: "cpu"

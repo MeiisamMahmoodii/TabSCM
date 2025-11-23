@@ -1,0 +1,20 @@
+output_dir: "causal_pfn_data"
+hidden_dim: 16
+n_nodes_min: 5
+n_nodes_max: 16
+p_edge: 0.3
+p_linear: 0.5
+n_samples: 1000
+n_runs: 5
+min_nodes_large: 50
+max_nodes_large: 100
+
+# Training Configuration
+max_cols: 128
+min_nodes: 8
+embed_dim: 128
+batch_size: 8
+lr: 0.0001
+total_steps: 20000
+print_every: 100
+n_test_samples: 100
