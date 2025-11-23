@@ -1,0 +1,23 @@
+output_dir: "debug_data"
+hidden_dim: 16
+n_nodes_min: 8
+n_nodes_max: 16
+p_edge: 0.3
+p_linear: 1.0
+n_samples: 1000
+n_runs: 10
+min_nodes_large: 50
+max_nodes_large: 100
+
+# Training Configuration
+max_cols: 128
+min_nodes: 8
+embed_dim: 128
+batch_size: 8
+accumulation_steps: 4
+use_amp: false # Temporarily disabled due to NaN loss
+lr: 0.0001
+total_steps: 2000
+print_every: 10
+n_test_samples: 5
+device: "cuda"

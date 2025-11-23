@@ -64,12 +64,14 @@ def train_model_online(config):
     loss_history = []
     grad_history = []
     
-    # Initialize Scaler for AMP
+    # Initialize Scaler for AMP (updated API)
     use_amp = config.get("use_amp", False)
-    scaler = torch.cuda.amp.GradScaler(enabled=use_amp)
+    scaler = torch.amp.GradScaler('cuda', enabled=use_amp)
     
     # Gradient Accumulation
     accumulation_steps = config.get("accumulation_steps", 1)
+    
+    optimizer.zero_grad()
     
     for step in pbar:
         try:
@@ -83,8 +85,8 @@ def train_model_online(config):
         y = batch['y'].to(device)
         pad_mask = batch['pad_mask'].to(device)
         
-        # Forward pass with AMP
-        with torch.cuda.amp.autocast(enabled=use_amp):
+        # Forward pass with AMP (updated API)
+        with torch.amp.autocast('cuda', enabled=use_amp):
             logits = model(x, m, pad_mask)
             loss = compute_masked_loss(logits, y, pad_mask, pos_weight=pos_weight)
             loss = loss / accumulation_steps # Normalize loss
